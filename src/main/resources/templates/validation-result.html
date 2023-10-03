@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Validation Result</title>
+    <style>
+        .success-message {
+            color: lawngreen;
+        }
+
+        .failure-message {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<h1>Validation Result</h1>
+<div th:class="${validationMessage == 'Validation successful!' ? 'success-message' : 'failure-message'}">
+    <p th:text="${validationMessage}"></p>
+</div><a href="/credit-card">Go Back</a>
+</body>
+</html>
