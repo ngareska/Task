@@ -89,16 +89,13 @@
         </div>
         <form th:action="@{/validate-credit-card}" th:object="${creditCard}" th:method="post">
           <div class="form-group">
-            <label for="cardNumber" class="text-muted text-sm">Card Number</label>
-            <input type="text" id="cardNumber" name="cardNumber" th:field="*{cardNumber}" placeholder="0000 0000 0000 0000" required>
+            <input type="text" id="cardNumber" name="cardNumber" th:field="*{cardNumber}" placeholder="Card Number" required>
           </div>
           <div class="form-group">
-            <label for="expiryDate" class="text-muted text-sm">Expiry date (MM/YY)</label>
             <input type="text" id="expiryDate" name="expiryDate" th:field="*{expiryDate}" placeholder="MM/YY" required>
           </div>
           <div class="form-group">
-            <label for="cvv" class="text-muted text-sm">CVV/CVC</label>
-            <input type="password" id="cvv" name="cvv" th:field="*{cvv}" placeholder="000" required>
+            <input type="password" id="cvv" name="cvv" th:field="*{cvv}" placeholder="CVV" required>
           </div>
           <button type="submit" class="btn btn-red text-center mt-4">Submit</button>
         </form>

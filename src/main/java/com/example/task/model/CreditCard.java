@@ -12,6 +12,19 @@ public class CreditCard {
     public String getExpiryDate() {
         return expiryDate;
     }
+
+    public void setCardNumber(String cardNumber) {
+        this.cardNumber = cardNumber;
+    }
+
+    public void setExpiryDate(String expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
+    public void setCvv(String cvv) {
+        this.cvv = cvv;
+    }
+
     public String getCvv() {
         return cvv;
     }

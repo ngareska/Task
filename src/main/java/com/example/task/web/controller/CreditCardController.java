@@ -24,7 +24,6 @@ public class CreditCardController {
     public String validateCreditCard(@ModelAttribute("creditCard") CreditCard creditCard, Model model) {
         boolean isValid = validateCreditCardData(creditCard);
 
-
         if (isValid) {
             model.addAttribute("validationMessage", "Validation successful!");
         } else {
@@ -39,7 +38,7 @@ public class CreditCardController {
         String expiryDate = creditCard.getExpiryDate();
 
         // Check card number length and format
-        if (cardNumber == null || !cardNumber.matches("\\d{16,19}")) {
+        if (cardNumber == null || !cardNumber.matches("\\d{16,19}") || !isValidLuhnAlgorithm(cardNumber)) {
             return false;
         }
 
@@ -84,5 +83,27 @@ public class CreditCardController {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private boolean isValidLuhnAlgorithm(String cardNumber) {
+        int[] digits = new int[cardNumber.length()];
+        for (int i = 0; i < cardNumber.length(); i++) {
+            digits[i] = Character.getNumericValue(cardNumber.charAt(i));
+        }
+
+        for (int i = digits.length - 2; i >= 0; i -= 2) {
+            int doubled = digits[i] * 2;
+            if (doubled > 9) {
+                doubled -= 9;
+            }
+            digits[i] = doubled;
+        }
+
+        int sum = 0;
+        for (int digit : digits) {
+            sum += digit;
+        }
+
+        return sum % 10 == 0;
     }
 }
