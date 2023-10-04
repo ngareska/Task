@@ -51,11 +51,9 @@
       margin-bottom: 15px;
     }
 
-    .validation-message {
-      color: red;
-      font-size: 14px;
-      margin-top: 5px;
-      display: block; /* Display the messages below the input fields */
+    .result-icon {
+      font-size: 50px;
+      margin-top: 20px;
     }
 
     @media screen and (max-width: 575px) {
@@ -63,6 +61,20 @@
         border-right: none;
         border-bottom: 1px solid #EEEEEE;
       }
+    }
+
+    /* Styles for the pop-up */
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
     }
   </style>
 </head>
@@ -74,21 +86,22 @@
         <div class="row justify-content-center">
           <h3 class="mb-4">Card details</h3>
         </div>
-        <form th:action="@{/credit-card}" th:object="${creditCard}" th:method="post">
+        <form th:action="@{/api/validate-credit-card}" th:object="${creditCard}" th:method="post" id="creditCardForm">
           <div class="form-group">
             <input type="text" id="cardNumber" name="cardNumber" th:field="*{cardNumber}" placeholder="Card Number" required>
-            <span class="validation-message" th:text="${cardNumberMessage}"></span>
           </div>
           <div class="form-group">
             <input type="text" id="expiryDate" name="expiryDate" th:field="*{expiryDate}" placeholder="MM/YY" required>
-            <span class="validation-message" th:text="${expiryDateMessage}"></span>
           </div>
           <div class="form-group">
             <input type="text" id="cvv" name="cvv" th:field="*{cvv}" placeholder="CVV" required>
-            <span class="validation-message" th:text="${cvvMessage}"></span>
           </div>
           <button type="submit" class="btn btn-primary text-center mt-4">Submit</button>
         </form>
+        <div id="popup" class="popup">
+          <div id="validationResult" class="result-icon">
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -97,7 +110,58 @@
   document.addEventListener("DOMContentLoaded", function() {
     const cardNumberInput = document.getElementById("cardNumber");
     const cvvInput = document.getElementById("cvv");
+    const expiryDateInput = document.getElementById("expiryDate");
+    const validationResult = document.getElementById("validationResult");
+    const popup = document.getElementById("popup");
 
+    const form = document.querySelector("#creditCardForm");
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault(); // Prevent the default form submission behavior
+
+      const formData = {
+        cardNumber: cardNumberInput.value,
+        expiryDate: expiryDateInput.value,
+        cvv: cvvInput.value
+      };
+
+      // Make an API request to validate the credit card
+      fetch("/api/validate-credit-card", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      })
+              .then(response => response.json())
+              .then(data => {
+                // Update the validation message and result icon based on the API response
+                if (validationResult) {
+                  // Update the checkmark or cross icon
+                  validationResult.innerHTML = data.success
+                          ? '<i class="fas fa-check-circle text-success"></i>'
+                          : '<i class="fas fa-times-circle text-danger"></i>';
+
+                  // Show the pop-up
+                  popup.style.display = "block";
+
+                  // Hide the pop-up after 3 seconds (adjust the delay as needed)
+                  setTimeout(function() {
+                    popup.style.display = "none";
+                  }, 3000);
+
+                  // Clear the form input fields
+                  cardNumberInput.value = '';
+                  expiryDateInput.value = '';
+                  cvvInput.value = '';
+                } else {
+                  console.error("Element with ID 'validationResult' not found in the DOM.");
+                }
+              })
+              .catch(error => {
+                console.error("Error:", error);
+              });
+    });
 
     cardNumberInput.addEventListener("input", function() {
       let value = this.value.replace(/\D/g, ''); // Remove non-numeric characters
@@ -113,7 +177,6 @@
       this.value = formattedValue.join('');
     });
   });
-
 </script>
 </body>
 </html>

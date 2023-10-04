@@ -1,16 +1,17 @@
 package com.example.task.web.controller;
 
 import com.example.task.model.CreditCard;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 public class CreditCardController {
@@ -20,25 +21,23 @@ public class CreditCardController {
         model.addAttribute("creditCard", new CreditCard());
         return "credit-card-form";
     }
+    @PostMapping(value = "api/validate-credit-card", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Object>> validateCreditCardApi(@RequestBody CreditCard creditCard) {
+        boolean isValid = validateCreditCardData(creditCard);
+        Map<String, Object> response = new HashMap<>();
 
-    @PostMapping("/credit-card")
-    public String validateCreditCard(@ModelAttribute("creditCard") CreditCard creditCard, Model model, RedirectAttributes redirectAttributes) {
-        boolean isValid = validateCreditCardData(creditCard, model);
-
-        if (!isValid) {
-            return "credit-card-form"; // Stay on the form page with error messages
+        if (isValid) {
+            response.put("success", true);
+            response.put("message", "Successful!");
         } else {
-            redirectAttributes.addFlashAttribute("validationMessage", "Payment successful!");
-            return "redirect:/success";
+            response.put("success", false);
+            response.put("message", "Invalid credit card details. Please check your input.");
         }
+
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/success")
-    public String showValidationResult(Model model) {
-        return "validation-result";
-    }
-
-    private boolean validateCreditCardData(CreditCard creditCard, Model model) {
+    private boolean validateCreditCardData(CreditCard creditCard) {
         String cardNumber = creditCard.getCardNumber();
         String cvv = creditCard.getCvv();
         String expiryDate = creditCard.getExpiryDate();
@@ -47,28 +46,23 @@ public class CreditCardController {
         // Check card number length and format
         if (cardNumber == null || !cardNumber.matches("\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4,7}")) {
             isValid = false;
-            model.addAttribute("cardNumberMessage", "Card number format is invalid.");
         } else if (!isValidLuhnAlgorithm(cardNumber)) {
             isValid = false;
-            model.addAttribute("cardNumberMessage", "Card number Luhn check failed.");
         }
 
         // Check expiry date
         if (!isValidExpiryDate(expiryDate)) {
             isValid = false;
-            model.addAttribute("expiryDateMessage", "Expiry date is in the past or has an invalid format.");
         }
 
         // Check CVV length and format based on card type
         if (isAmericanExpress(cardNumber)) {
             if (cvv == null || cvv.length() != 4 || !cvv.matches("\\d{4}")) {
                 isValid = false;
-                model.addAttribute("cvvMessage", "CVV format for American Express is incorrect.");
             }
         } else {
             if (cvv == null || cvv.length() != 3 || !cvv.matches("\\d{3}")) {
                 isValid = false;
-                model.addAttribute("cvvMessage", "CVV format is incorrect.");
             }
         }
 

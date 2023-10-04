@@ -1,0 +1,8 @@
+POST http://localhost:9091/api/validate-credit-card HTTP/1.1
+Content-Type: application/json
+
+{
+  "cardNumber": "4532 0151 1283 0364",
+  "expiryDate": "12/23",
+  "cvv": "123"
+}
