@@ -12,11 +12,11 @@ Before running this application, ensure you have the following prerequisites:
 ### Build setup
 1. Clone this repository to your local machine:
 
-> git clone https://github.com/your-username/credit-card-validation.git
+> git clone https://github.com/ngareska/Task.git
 
 2. Navigate to the project directory:
 
-> cd credit-card-validation
+> cd Task
 
 3. Build and run the application:
 
