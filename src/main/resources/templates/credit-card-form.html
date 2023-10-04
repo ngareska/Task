@@ -47,28 +47,15 @@
       outline-width: 0;
     }
 
-    .btn-red {
-      background-color: #4CAF50;
-      color: #fff;
-      padding: 12px 25px;
-      border-radius: 5px;
-      font-size: 18px;
-      letter-spacing: 2px;
-      border: none;
-      cursor: pointer;
-    }
-
-    .btn-red:hover {
-      background-color: #45a049;
-    }
-
-    .btn-red:focus {
-      box-shadow: none !important;
-      outline-width: 0;
-    }
-
     .form-group {
       margin-bottom: 15px;
+    }
+
+    .validation-message {
+      color: red;
+      font-size: 14px;
+      margin-top: 5px;
+      display: block; /* Display the messages below the input fields */
     }
 
     @media screen and (max-width: 575px) {
@@ -85,23 +72,48 @@
     <div class="col-xl-6 col-lg-7 col-md-8 col-sm-10">
       <div class="card border-0">
         <div class="row justify-content-center">
-          <h3 class="mb-4">Credit Card Validation</h3>
+          <h3 class="mb-4">Card details</h3>
         </div>
-        <form th:action="@{/validate-credit-card}" th:object="${creditCard}" th:method="post">
+        <form th:action="@{/credit-card}" th:object="${creditCard}" th:method="post">
           <div class="form-group">
             <input type="text" id="cardNumber" name="cardNumber" th:field="*{cardNumber}" placeholder="Card Number" required>
+            <span class="validation-message" th:text="${cardNumberMessage}"></span>
           </div>
           <div class="form-group">
             <input type="text" id="expiryDate" name="expiryDate" th:field="*{expiryDate}" placeholder="MM/YY" required>
+            <span class="validation-message" th:text="${expiryDateMessage}"></span>
           </div>
           <div class="form-group">
-            <input type="password" id="cvv" name="cvv" th:field="*{cvv}" placeholder="CVV" required>
+            <input type="text" id="cvv" name="cvv" th:field="*{cvv}" placeholder="CVV" required>
+            <span class="validation-message" th:text="${cvvMessage}"></span>
           </div>
-          <button type="submit" class="btn btn-red text-center mt-4">Submit</button>
+          <button type="submit" class="btn btn-primary text-center mt-4">Submit</button>
         </form>
       </div>
     </div>
   </div>
 </div>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const cardNumberInput = document.getElementById("cardNumber");
+    const cvvInput = document.getElementById("cvv");
+
+
+    cardNumberInput.addEventListener("input", function() {
+      let value = this.value.replace(/\D/g, ''); // Remove non-numeric characters
+      const formattedValue = [];
+
+      for (let i = 0; i < value.length; i++) {
+        if (i > 0 && i % 4 === 0) {
+          formattedValue.push(' '); // Add a space every four digits
+        }
+        formattedValue.push(value.charAt(i));
+      }
+
+      this.value = formattedValue.join('');
+    });
+  });
+
+</script>
 </body>
 </html>

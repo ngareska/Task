@@ -6,6 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -20,47 +21,59 @@ public class CreditCardController {
         return "credit-card-form";
     }
 
-    @PostMapping("/validate-credit-card")
-    public String validateCreditCard(@ModelAttribute("creditCard") CreditCard creditCard, Model model) {
-        boolean isValid = validateCreditCardData(creditCard);
+    @PostMapping("/credit-card")
+    public String validateCreditCard(@ModelAttribute("creditCard") CreditCard creditCard, Model model, RedirectAttributes redirectAttributes) {
+        boolean isValid = validateCreditCardData(creditCard, model);
 
-        if (isValid) {
-            model.addAttribute("validationMessage", "Validation successful!");
+        if (!isValid) {
+            return "credit-card-form"; // Stay on the form page with error messages
         } else {
-            model.addAttribute("validationMessage", "Validation failed!");
+            redirectAttributes.addFlashAttribute("validationMessage", "Payment successful!");
+            return "redirect:/success";
         }
+    }
+
+    @GetMapping("/success")
+    public String showValidationResult(Model model) {
         return "validation-result";
     }
 
-    private boolean validateCreditCardData(CreditCard creditCard) {
+    private boolean validateCreditCardData(CreditCard creditCard, Model model) {
         String cardNumber = creditCard.getCardNumber();
         String cvv = creditCard.getCvv();
         String expiryDate = creditCard.getExpiryDate();
+        boolean isValid = true;
 
         // Check card number length and format
-        if (cardNumber == null || !cardNumber.matches("\\d{16,19}") || !isValidLuhnAlgorithm(cardNumber)) {
-            return false;
+        if (cardNumber == null || !cardNumber.matches("\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4,7}")) {
+            isValid = false;
+            model.addAttribute("cardNumberMessage", "Card number format is invalid.");
+        } else if (!isValidLuhnAlgorithm(cardNumber)) {
+            isValid = false;
+            model.addAttribute("cardNumberMessage", "Card number Luhn check failed.");
         }
 
         // Check expiry date
         if (!isValidExpiryDate(expiryDate)) {
-            return false;
+            isValid = false;
+            model.addAttribute("expiryDateMessage", "Expiry date is in the past or has an invalid format.");
         }
 
         // Check CVV length and format based on card type
         if (isAmericanExpress(cardNumber)) {
             if (cvv == null || cvv.length() != 4 || !cvv.matches("\\d{4}")) {
-                return false;
+                isValid = false;
+                model.addAttribute("cvvMessage", "CVV format for American Express is incorrect.");
             }
         } else {
             if (cvv == null || cvv.length() != 3 || !cvv.matches("\\d{3}")) {
-                return false;
+                isValid = false;
+                model.addAttribute("cvvMessage", "CVV format is incorrect.");
             }
         }
 
-        return true;
+        return isValid;
     }
-
     private boolean isAmericanExpress(String cardNumber) {
         return cardNumber != null && (cardNumber.startsWith("34") || cardNumber.startsWith("37"));
     }
@@ -87,21 +100,21 @@ public class CreditCardController {
 
     private boolean isValidLuhnAlgorithm(String cardNumber) {
         int[] digits = new int[cardNumber.length()];
-        for (int i = 0; i < cardNumber.length(); i++) {
-            digits[i] = Character.getNumericValue(cardNumber.charAt(i));
-        }
-
-        for (int i = digits.length - 2; i >= 0; i -= 2) {
-            int doubled = digits[i] * 2;
-            if (doubled > 9) {
-                doubled -= 9;
-            }
-            digits[i] = doubled;
-        }
-
+        boolean isEven = false;
         int sum = 0;
-        for (int digit : digits) {
+
+        for (int i = cardNumber.length() - 1; i >= 0; i--) {
+            int digit = Character.getNumericValue(cardNumber.charAt(i));
+
+            if (isEven) {
+                digit *= 2;
+                if (digit > 9) {
+                    digit -= 9;
+                }
+            }
+
             sum += digit;
+            isEven = !isEven;
         }
 
         return sum % 10 == 0;

@@ -3,20 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>Validation Result</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         .success-message {
-            color: lawngreen;
+            color: seagreen;
+            font-size: 24px; /* Change the font size as desired */
         }
-
-        .failure-message {
-            color: red;
+        .alert-success {
+            background-color: lightgrey; /* Change the background color as desired */
         }
     </style>
 </head>
 <body>
-<h1>Validation Result</h1>
-<div th:class="${validationMessage == 'Validation successful!' ? 'success-message' : 'failure-message'}">
-    <p th:text="${validationMessage}"></p>
-</div><a href="/credit-card">Go Back</a>
+<div class="container mt-5">
+    <div th:if="${validationMessage == 'Payment successful!'}" class="alert alert-success text-center">
+        <i class="fas fa-check-circle fa-5x mb-3"></i>
+        <p class="success-message" th:text="${validationMessage}"></p>
+    </div>
+    <a href="/credit-card" class="btn btn-primary mt-3">Go Back</a>
+</div>
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </body>
 </html>
